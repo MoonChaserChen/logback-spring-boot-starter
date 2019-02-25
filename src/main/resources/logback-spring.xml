@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="false">
+	<!--定义日志文件的存储地址 勿在 LogBack 的配置中使用相对路径 -->
+	<springProperty scope="context" name="PROJECT_NAME_0" source="logback.project-name"/>
+	<property scope="context" name="PROJECT_NAME" value="${PROJECT_NAME_0:-default-project}"/>
+	<springProperty scope="context" name="LOG_HOME_0" source="logback.log-home"/>
+	<property scope="context" name="LOG_HOME" value="${LOG_HOME_0:-/data/logs/default-project/}"/>
+	<!-- 控制台输出 -->
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符, %X输出MDC信息 -->
+			<Pattern>[%property{PROJECT_NAME} %10logger]%n%date{yyyy-MM-dd HH:mm:ss} %level [%thread][%X{loginName}]\(%file:%line\) %msg%n</Pattern>
+		</encoder>
+	</appender>
+	<!-- 按照每天生成日志文件 -->
+	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<!--日志文件输出的文件名-->
+			<FileNamePattern>${LOG_HOME}/[%d{yyyy-MM-dd}].log</FileNamePattern>
+			<!--日志文件保留天数-->
+			<MaxHistory>7</MaxHistory>
+		</rollingPolicy>
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符，%X输出MDC信息-->
+			<Pattern>[%property{PROJECT_NAME} %10logger]%n%date{yyyy-MM-dd HH:mm:ss} %level [%thread][%X{loginName}]\(%file:%line\) %msg%n</Pattern>
+		</encoder>
+		<!--日志文件最大的大小-->
+		<triggeringPolicy
+			class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+			<MaxFileSize>10MB</MaxFileSize>
+		</triggeringPolicy>
+	</appender>
+
+	<!--错误日志记录-->
+	<appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<FileNamePattern>${LOG_HOME}/error/${PROJECT_NAME}[%d{yyyy-MM-dd}].log</FileNamePattern>
+		</rollingPolicy>
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<Pattern>[%property{PROJECT_NAME} %10logger]%n%date{yyyy-MM-dd HH:mm:ss} %level [%thread][%X{loginName}]\(%file:%line\) %msg%n</Pattern>
+		</encoder>
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+			<level>ERROR</level>
+		</filter>
+	</appender>
+
+	<!--消息日志记录-->
+	<appender name="INFO_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<FileNamePattern>${LOG_HOME}/info/${PROJECT_NAME}[%d{yyyy-MM-dd}].log</FileNamePattern>
+		</rollingPolicy>
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<Pattern>[%property{PROJECT_NAME} %10logger]%n%date{yyyy-MM-dd HH:mm:ss} %level [%thread][%X{loginName}]\(%file:%line\) %msg%n</Pattern>
+		</encoder>
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+			<level>INFO</level>
+		</filter>
+	</appender>
+
+	<!-- 下面配置一些第三方包的日志过滤级别，用于避免刷屏 -->
+	<logger name="org.springframework" level="info" />
+	<!--myibatis log configure -->
+	<logger name="com.apache.ibatis" level="info" />
+	<logger name="java.sql.Connection" level="info" />
+	<logger name="java.sql.Statement" level="info" />
+	<logger name="java.sql.PreparedStatement" level="info" />
+	<!-- 日志输出级别 -->
+	<root level="debug">
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="FILE" />
+		<appender-ref ref="ERROR_FILE" />
+		<appender-ref ref="INFO_FILE" />
+	</root>
+</configuration>
